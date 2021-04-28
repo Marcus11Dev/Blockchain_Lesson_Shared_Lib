@@ -398,12 +398,15 @@ class Node:
         chain = block_msg.payload
 
         is_valid_chain = Blockchain.check_chain_validity(chain=chain,previous_hash=self.blockchain.last_block.hash)
+    
         all_signatures_correct = self._all_signatures_correct(chain=chain)
 
         if is_valid_chain and all_signatures_correct:
             self.user_public_key_map.update(self._get_temp_user_public_key_map(chain=chain))
             for block in block_msg.payload: 
                 self.blockchain.chain.append(block)
+
+        
         else:
             ValueError("The provided Blockchain does not match to the current chain, Chain invalid.")
         return None
@@ -433,9 +436,9 @@ class Node:
     def _get_user_involved_in_transaction(self,block):
         sender = block.transactions.sender
         receiver = block.transactions.receiver
-        if  sender != 'Cloud' or sender != 'bank':
+        if  sender != 'Cloud' and sender != 'bank':
             return sender
-        elif  receiver != 'Cloud' or receiver != 'bank':
+        elif  receiver != 'Cloud' and receiver != 'bank':
             return receiver
         else:
             raise ValueError("Block contains no user involved")
