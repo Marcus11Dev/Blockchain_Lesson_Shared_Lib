@@ -13,7 +13,7 @@ from collections import namedtuple
 
 """ Define Blocks """
 
-Transaction = namedtuple('transaction', ['sender','receiver', 'product', 'quantity','amount'])
+Transaction = namedtuple('transaction', ['sender','receiver', 'product', 'quantity','amount','signature'])
 
 class Block:
     def __init__(self, index, transactions, timestamp, previous_hash, nonce=0, block_hash=None):
@@ -50,7 +50,7 @@ class Blockchain:
         the chain. The block has index 0, previous_hash as 0, and
         a valid hash.
         """
-        genesis_block = Block(0, Transaction('nobody','nobody', 'nothing',0, 0),0, "0")
+        genesis_block = Block(0, Transaction('nobody','nobody', 'nothing',0, 0,0),0, "0")
         genesis_block.hash = genesis_block.compute_hash()
         self.chain.append(genesis_block)
 

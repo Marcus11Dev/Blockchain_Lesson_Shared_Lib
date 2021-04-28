@@ -129,7 +129,8 @@ class JSON_Parser:
                                         dump["transactions"][1],
                                         dump["transactions"][2],
                                         dump["transactions"][3],
-                                        dump["transactions"][4])    
+                                        dump["transactions"][4],
+                                        dump["transactions"][5])    
 
 
         block = Block(dump["index"],

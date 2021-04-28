@@ -8,7 +8,6 @@ Created on Sat Oct 24 10:56:51 2020
 from hashlib import sha256
 from hashlib import md5
 import numpy as np
-import time
 import json
 import os
 from cryptography.hazmat.primitives import serialization  
@@ -72,7 +71,7 @@ class Node:
         self.headers = [] # List containing the payload of headers messages (list of hashes)
     
     def init_coins(self):
-        self.blockchain.add_new_transaction(Transaction('bank',self.name, 'InitCoin',1,100))
+        self.blockchain.add_new_transaction(Transaction('bank',self.name, 'InitCoin',1,100,0))
         self.blockchain.mine()
         self.write_backup()
     
@@ -157,13 +156,13 @@ class Node:
         except:
             return None
         
-    def transaction(self, source, destination, product, quantity, amount):
-            self.blockchain.add_new_transaction(Transaction(source, destination, product, quantity, amount))
+    def transaction(self, source, destination, product, quantity, amount, signature):
+            self.blockchain.add_new_transaction(Transaction(source, destination, product, quantity, amount, signature))
             self.blockchain.mine()
             self.write_backup()
 
-    def transaction_to(self,to,product, quantity,amount):
-        self.blockchain.add_new_transaction(Transaction(self.name,to,product, quantity, amount))
+    def transaction_to(self,to,product, quantity,amount,signature):
+        self.blockchain.add_new_transaction(Transaction(self.name,to,product, quantity, amount,signature))
         self.blockchain.mine()
         self.write_backup()
     
@@ -522,6 +521,8 @@ class Node:
                 print("Block: ", block['index'])
                 for elements in block:
                     print(" ", elements, ": ", block[elements])
+                print()
+                print()
         else:
             print(chain_data)
 
