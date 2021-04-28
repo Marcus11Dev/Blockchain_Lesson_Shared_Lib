@@ -71,7 +71,7 @@ class Node:
         self.headers = [] # List containing the payload of headers messages (list of hashes)
     
     def init_coins(self):
-        self.blockchain.add_new_transaction(Transaction('bank',self.name, 'InitCoin',1,100,0))
+        self.blockchain.add_new_transaction(Transaction('bank',self.name, 'InitCoin',1,100,'0'))
         self.blockchain.mine()
         self.write_backup()
     
@@ -150,11 +150,15 @@ class Node:
     def add_to_user_public_key_map(self, user, public_key):
         self.user_public_key_map.update( {user : public_key} )
 
-    def get_user_public_key(self, user):
+    def get_user_public_key(self, user,temp_user_public_key_map ={}):
         try:
             return serialization.load_pem_public_key(self.user_public_key_map[user])
         except:
-            return None
+            try: 
+                return serialization.load_pem_public_key(temp_user_public_key_map[user])
+            except:
+                return None
+
         
     def transaction(self, source, destination, product, quantity, amount, signature):
             self.blockchain.add_new_transaction(Transaction(source, destination, product, quantity, amount, signature))
@@ -394,12 +398,48 @@ class Node:
         chain = block_msg.payload
 
         is_valid_chain = Blockchain.check_chain_validity(chain=chain,previous_hash=self.blockchain.last_block.hash)
-        if is_valid_chain:
+        all_signatures_correct = self._all_signatures_correct(chain=chain)
+
+        if is_valid_chain and all_signatures_correct:
+            self.user_public_key_map.update(self._get_temp_user_public_key_map(chain=chain))
             for block in block_msg.payload: 
                 self.blockchain.chain.append(block)
         else:
             ValueError("The provided Blockchain does not match to the current chain, Chain invalid.")
         return None
+
+    def _all_signatures_correct(self,chain):
+        temp_user_public_key_map =self._get_temp_user_public_key_map(chain=chain)
+        for block in chain:
+            if not block.transactions.product == 'InitCoin':
+                user = self._get_user_involved_in_transaction(block=block)
+                signature = block.transactions.signature
+                product = block.transactions.product
+                quantity = block.transactions.quantity
+                payload={'product':product,'quantity':quantity,'signature':signature}
+                if not self.check_signature(user=user,payload=payload,temp_user_public_key_map=temp_user_public_key_map):
+                    return False
+        return True
+
+    def _get_temp_user_public_key_map(self,chain):
+        temp_user_public_key_map ={}
+        for block in chain:
+            if block.transactions.product == 'InitCoin':
+                user = block.transactions.receiver
+                pub_key = block.transactions.signature.encode('utf-8')
+                temp_user_public_key_map.update({user:pub_key})
+        return temp_user_public_key_map
+
+    def _get_user_involved_in_transaction(self,block):
+        sender = block.transactions.sender
+        receiver = block.transactions.receiver
+        if  sender != 'Cloud' or sender != 'bank':
+            return sender
+        elif  receiver != 'Cloud' or receiver != 'bank':
+            return receiver
+        else:
+            raise ValueError("Block contains no user involved")
+
 
     def handle_incoming_message(self,incoming_message):
         """
@@ -447,12 +487,12 @@ class Node:
         integer_signature = [signature[i] for i in range(len(signature))]
         return integer_signature
 
-    def check_signature(self, user, payload):
+    def check_signature(self, user, payload, temp_user_public_key_map ={}):
         # True if signature is correct
         # False if signature is not correct
 
         # get public key out of known public keys if existing
-        public_key = self.get_user_public_key(user=user)
+        public_key = self.get_user_public_key(user=user,temp_user_public_key_map=temp_user_public_key_map)
         
         if public_key==None:
             return False
