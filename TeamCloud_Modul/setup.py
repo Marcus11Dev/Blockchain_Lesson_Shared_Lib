@@ -5,4 +5,8 @@ setup(name='TeamCloud_Modul',
       description='A plugin to provide Blockchain functionalities',
       license='',
       packages=['TeamCloud_Modul'],
+      install_requires=[
+            "numpy",
+            "cryptography"
+            ],
       )
