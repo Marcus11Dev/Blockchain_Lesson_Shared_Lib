@@ -71,7 +71,7 @@ class Node:
         self.headers = [] # List containing the payload of headers messages (list of hashes)
     
     def init_coins(self):
-        self.blockchain.add_new_transaction(Transaction('bank',self.name, 'InitCoin',1,100,'0'))
+        self.blockchain.add_new_transaction(Transaction('bank',self.name, 'InitCoin',1,10000,'0'))
         self.blockchain.mine()
         self.write_backup()
     
@@ -569,15 +569,27 @@ class Node:
         else:
             print(chain_data)
 
-    def print_balance(self):
-        balance = 0
+    def print_balance(self, all=False):
+        user_list = {}
+
+        # Set user_list
+        if all:
+            for user in self.user_public_key_map:
+                user_list.update({user : 0})
+        else:
+            user_list.update({self.name:0})
+        
+        # Set balances
         for block in self.blockchain.chain:
-            if block.transactions.sender == self.name:
-                balance-= block.transactions.amount
+            if block.transactions.sender in user_list:
+                user_list[block.transactions.sender] -= block.transactions.amount
             
-            elif block.transactions.receiver == self.name:
-                balance+= block.transactions.amount
-        print(balance)
+            elif block.transactions.receiver in user_list:
+                user_list[block.transactions.receiver] += block.transactions.amount
+
+        # Print balances
+        for user in user_list:
+            print(user, ": ", user_list[user]) 
 
     def print_quotes(self, product):
         quantity = 0
