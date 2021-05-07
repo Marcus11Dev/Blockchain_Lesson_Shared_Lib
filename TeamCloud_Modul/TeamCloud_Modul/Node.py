@@ -575,7 +575,8 @@ class Node:
         # Set user_list
         if all:
             for user in self.user_public_key_map:
-                user_list.update({user : 0})
+                if user != "Cloud":
+                    user_list.update({user : 0})
         else:
             user_list.update({self.name:0})
         
