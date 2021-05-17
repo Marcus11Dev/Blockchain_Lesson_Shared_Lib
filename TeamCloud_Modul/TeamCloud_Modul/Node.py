@@ -116,10 +116,6 @@ class Node:
                 return False
 
         return True
-          
-    def get_balance(self):
-        self.update_balance()
-        return self.balance
     
     def check_user_exists(self, name):
         exist = False
@@ -527,7 +523,6 @@ class Node:
         else:
             return True
 
-
     def write_backup(self):
         if os.path.exists(self.backup_path) and os.path.getsize(self.backup_path) > 0:
             os.remove(self.backup_path)
@@ -553,6 +548,30 @@ class Node:
             return True
         else:
             return False
+
+    def create_user_public_key_map(self):
+        # Init user-key map
+        self.user_public_key_map = {}
+
+        try:
+            # Loop through chain
+            for block in self.blockchain.chain:
+                if block.transactions.product == 'InitCoin':
+                    user = block.transactions.receiver
+                    pub_key = block.transactions.signature.encode('utf-8')
+                    
+                    if user in self.user_public_key_map or user=="Cloud":
+                        continue
+
+                    # Add user-key pair
+                    self.user_public_key_map.update({user:pub_key})
+
+        except:
+            print("Error occured creating user-key map")
+
+    ####################################################################
+    # Agent: Print Functions
+    ####################################################################
 
     def print_chain(self, pretty=True):
         chain_data = []
@@ -601,4 +620,40 @@ class Node:
             elif block.transactions.receiver == self.name and block.transactions.product == product:
                 quantity-= block.transactions.quantity
         print(product, ": ", quantity)
-    
+
+    ####################################################################
+    # Agent: Get Functions
+    ####################################################################
+
+    def get_balance(self, all=False):
+        user_list = {}
+
+        # Set user_list
+        if all:
+            for user in self.user_public_key_map:
+                if user != "Cloud":
+                    user_list.update({user : 0})
+        else:
+            user_list.update({self.name:0})
+        
+        # Set balances
+        for block in self.blockchain.chain:
+            if block.transactions.sender in user_list:
+                user_list[block.transactions.sender] -= block.transactions.amount
+            
+            elif block.transactions.receiver in user_list:
+                user_list[block.transactions.receiver] += block.transactions.amount
+
+        # Return balances
+        return user_list
+
+    def get_quotes(self, product):
+        quantity = 0
+        for block in self.blockchain.chain:
+            if block.transactions.sender == self.name and block.transactions.product == product:
+                quantity+= block.transactions.quantity
+            
+            elif block.transactions.receiver == self.name and block.transactions.product == product:
+                quantity-= block.transactions.quantity
+        
+        return {"Product": product, "Quantity": quantity}
