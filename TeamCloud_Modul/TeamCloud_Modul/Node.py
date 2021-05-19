@@ -156,8 +156,8 @@ class Node:
                 return None
 
         
-    def transaction(self, source, destination, product, quantity, amount, signature):
-            self.blockchain.add_new_transaction(Transaction(source, destination, product, quantity, amount, signature))
+    def transaction(self,transaction):
+            self.blockchain.add_new_transaction(transaction)
             self.blockchain.mine()
             self._write_backup()
 
@@ -209,25 +209,19 @@ class Node:
             raise ValueError("Headers list is empty!")
         elif len(self.headers) == 1:
             raise ValueError("Headers list has to contain at least two lists.!")
-        differ_index = np.zeros((len(self.headers),len(self.headers)))
         
-        # indexes of the list that is compared to the other lists
-        for index_list_1 in range(len(self.headers)):
+        best_headers_list_index = self._get_best_headers_list_index()
+        payload = []
+        for hash_ in self.headers[best_headers_list_index]:
+            payload.append(('block',hash_))
+        
+        # reset the headers list for the next syncing 
 
-            # index of the list that is currently compared to the first list
-            for index_list_2 in range(index_list_1 + 1 , len(self.headers)): 
-                
-                # just compare all the items until there is a diffrence or one list ends
-                num_of_items = min(len(self.headers[index_list_2]),len(self.headers[index_list_1]))
-                for index_item_in_list in range(num_of_items):
-                    if self.headers[index_list_1][index_item_in_list] != self.headers[index_list_2][index_item_in_list] or \
-                            index_item_in_list == num_of_items-1:
-                        
-                        # write the index +1 of the diffrence to the matrix (two times because it is symmetrical)
-                        differ_index[index_list_1][index_list_2] = index_item_in_list + 1
-                        differ_index[index_list_2][index_list_1] = index_item_in_list + 1
-                        break
+        self.headers = []
+        return payload #, best_headers_list_index
 
+    def _get_best_headers_list_index(self):
+        differ_index = self._get_differ_index_array_with_headers_list()
         # find the best headers list. There are two criterias:
                
         # 1. the list has the most in common with other lists (=> sum of all diff_indexes is maximum)
@@ -247,15 +241,28 @@ class Node:
         
         # 2. it is the longest list of all lists that satisfy 1.
         best_headers_list_index = max_indexes[len_of_max_index_lists.index(max(len_of_max_index_lists))]
-              
-        payload = []
-        for hash_ in self.headers[best_headers_list_index]:
-            payload.append(('block',hash_))
-        
-        # reset the headers list for the next syncing 
+        return best_headers_list_index
 
-        self.headers = []
-        return payload #, best_headers_list_index
+    def _get_differ_index_array_with_headers_list(self):
+        differ_index = np.zeros((len(self.headers),len(self.headers)))
+        
+        # indexes of the list that is compared to the other lists
+        for index_list_1 in range(len(self.headers)):
+
+            # index of the list that is currently compared to the first list
+            for index_list_2 in range(index_list_1 + 1 , len(self.headers)): 
+                
+                # just compare all the items until there is a diffrence or one list ends
+                num_of_items = min(len(self.headers[index_list_2]),len(self.headers[index_list_1]))
+                for index_item_in_list in range(num_of_items):
+                    if self.headers[index_list_1][index_item_in_list] != self.headers[index_list_2][index_item_in_list] or \
+                            index_item_in_list == num_of_items-1:
+                        
+                        # write the index +1 of the diffrence to the matrix (two times because it is symmetrical)
+                        differ_index[index_list_1][index_list_2] = index_item_in_list + 1
+                        differ_index[index_list_2][index_list_1] = index_item_in_list + 1
+                        break
+        return differ_index
 
 
     def _get_payload_for_block_msg(self,block_hash):
@@ -329,20 +336,21 @@ class Node:
         """
         # check the validity of the blockchain
         chain = block_msg.payload
+        self.append_chain_to_own_blockchain(chain=chain)      
+        return None
 
-        is_valid_chain = Blockchain.check_chain_validity(chain=chain,previous_hash=self.blockchain.last_block.hash)
-    
-        all_signatures_correct = self._all_signatures_correct(chain=chain)
-
-        if is_valid_chain and all_signatures_correct:
+    def append_chain_to_own_blockchain(self,chain):
+        if self.are_signatures_correct_and_chain_valid(chain=chain):
             self.user_public_key_map.update(self._get_temp_user_public_key_map(chain=chain))
-            for block in block_msg.payload: 
+            for block in chain: 
                 self.blockchain.chain.append(block)
-
-        
         else:
             ValueError("The provided Blockchain does not match to the current chain, Chain invalid.")
-        return None
+
+    def are_signatures_correct_and_chain_valid(self,chain):
+        is_valid_chain = Blockchain.check_chain_validity(chain=chain,previous_hash=self.blockchain.last_block.hash)
+        all_signatures_correct = self._all_signatures_correct(chain=chain)
+        return is_valid_chain and all_signatures_correct
 
     def _all_signatures_correct(self,chain):
         temp_user_public_key_map =self._get_temp_user_public_key_map(chain=chain)
