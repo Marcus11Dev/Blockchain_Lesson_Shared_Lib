@@ -58,7 +58,7 @@ class Node:
         self.json_parser = JSON_Parser()
 
         if self.name == "Cloud":
-            if not self.read_backup():
+            if not self._read_backup():
                 self.blockchain.create_genesis_block()
                 self.init_coins()
   
@@ -75,7 +75,7 @@ class Node:
         self.blockchain.mine()
 
         if self.name == "Cloud":
-            self.write_backup()
+            self._write_backup()
     
     def update_balance(self):
         self.balance = 0
@@ -163,7 +163,7 @@ class Node:
         self.blockchain.mine()
     
         if self.name == "Cloud":
-            self.write_backup()
+            self._write_backup()
 
 
     # Blockchain synchronisation part START
