@@ -57,7 +57,7 @@ class Node:
         self.blockchain=Blockchain()
         self.json_parser = JSON_Parser()
 
-        if name == "Cloud":
+        if self.name == "Cloud":
             if not self.read_backup():
                 self.blockchain.create_genesis_block()
                 self.init_coins()
@@ -73,7 +73,9 @@ class Node:
     def init_coins(self):
         self.blockchain.add_new_transaction(Transaction('bank',self.name, 'InitCoin',1,10000,'0'))
         self.blockchain.mine()
-        self.write_backup()
+
+        if self.name == "Cloud":
+            self.write_backup()
     
     def update_balance(self):
         self.balance = 0
@@ -157,14 +159,18 @@ class Node:
 
         
     def transaction(self, source, destination, product, quantity, amount, signature):
-            self.blockchain.add_new_transaction(Transaction(source, destination, product, quantity, amount, signature))
-            self.blockchain.mine()
+        self.blockchain.add_new_transaction(Transaction(source, destination, product, quantity, amount, signature))
+        self.blockchain.mine()
+    
+        if self.name == "Cloud":
             self.write_backup()
 
     def transaction_to(self,to,product, quantity,amount,signature):
         self.blockchain.add_new_transaction(Transaction(self.name,to,product, quantity, amount,signature))
         self.blockchain.mine()
-        self.write_backup()
+
+        if self.name == "Cloud":
+            self.write_backup()
     
     def establish_connection(self):
         return
