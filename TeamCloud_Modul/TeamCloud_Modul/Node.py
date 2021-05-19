@@ -106,15 +106,16 @@ class Node:
                 quantity-= block.transactions.quantity
         return quantity
 
-    def check_transaction_validity(self, sender, receiver, product, quantity, amount_per_piece):
-        if sender != "Cloud" and sender != "bank":
+    def check_transaction_validity(self, transaction: Transaction):
+        
+        if transaction.sender != "Cloud" and transaction.sender != "bank":
             # Check buyer has enough money
-            if self.get_balance_of(sender) < quantity*amount_per_piece:
+            if self.get_balance_of(transaction.sender) < transaction.amount:
                 return False
 
-        if receiver != "Cloud":
+        if transaction.receiver != "Cloud":
             # Check seller has enough quantity
-            if self.get_quotes_of(receiver, product) < quantity:
+            if self.get_quotes_of(transaction.receiver, transaction.product) < transaction.quantity:
                 return False
 
         return True
