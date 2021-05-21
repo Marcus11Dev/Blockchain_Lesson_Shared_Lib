@@ -34,8 +34,6 @@ class Block:
         block_string = json.dumps(attributes_as_dict, sort_keys=True)
         return sha256(block_string.encode()).hexdigest()
     
- 
-    
 class Blockchain:
     # difficulty of our PoW algorithm
     difficulty = 2

@@ -118,12 +118,6 @@ class JSON_Parser:
     ### Specific Parser
     ## Block
     def parse_dump_to_block(self, dump):
-        #block = Block(dump["index"],
-        #            dump["transactions"],
-        #            dump["timestamp"],
-        #            dump["previous_hash"],
-        #            dump["nonce"],
-        #            dump["hash"])
 
         transaction_obj = Transaction(dump["transactions"][0], 
                                         dump["transactions"][1],

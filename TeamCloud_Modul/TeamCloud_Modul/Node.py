@@ -60,7 +60,6 @@ class Node:
         if self.name == "Cloud":
             if not self._read_backup():
                 self.blockchain.create_genesis_block()
-                self.init_coins()
   
         else:
             self.blockchain.create_genesis_block()
@@ -69,10 +68,6 @@ class Node:
         self.update_balance()         
         
         self.headers = [] # List containing the payload of headers messages (list of hashes)
-    
-    def init_coins(self):
-        self.blockchain.add_new_transaction(Transaction('bank',self.name, 'InitCoin',1,10000,'0'))
-        self.blockchain.mine()
 
         if self.name == "Cloud":
             self._write_backup()
@@ -240,7 +235,7 @@ class Node:
         while max(summed_values) == abs_max:
             max_indexes.append(summed_values.index(abs_max))
             if max(summed_values) == 0:
-                return []
+                return 0
             summed_values[max_indexes[-1]] = 0
 
         len_of_max_index_lists = [len(self.headers[i]) for i in max_indexes]
