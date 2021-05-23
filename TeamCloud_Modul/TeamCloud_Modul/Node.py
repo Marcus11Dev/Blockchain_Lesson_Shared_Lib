@@ -50,27 +50,18 @@ class Node:
 
         self.name = name
         self.__private_key = private_key
-        self.__public_key = public_key
         self.user_public_key_map = {}
-        self.filepath = os.path.dirname(os.path.abspath(__file__))
-        self.backup_path = self.filepath + "/backup.txt"
+
         self.blockchain=Blockchain()
         self.json_parser = JSON_Parser()
 
-        if self.name == "Cloud":
-            if not self._read_backup():
-                self.blockchain.create_genesis_block()
-  
-        else:
-            self.blockchain.create_genesis_block()
+
+        self.blockchain.create_genesis_block()
             
         self.balance = 0
         self.update_balance()         
         
         self.headers = [] # List containing the payload of headers messages (list of hashes)
-
-        if self.name == "Cloud":
-            self._write_backup()
     
     def update_balance(self):
         self.balance = 0
@@ -157,9 +148,6 @@ class Node:
     def transaction(self,transaction):
         self.blockchain.add_new_transaction(transaction)
         self.blockchain.mine()
-    
-        if self.name == "Cloud":
-            self._write_backup()
 
 
     # Blockchain synchronisation part START
@@ -465,31 +453,7 @@ class Node:
             return True
 
 
-    def _write_backup(self):
-        if os.path.exists(self.backup_path) and os.path.getsize(self.backup_path) > 0:
-            os.remove(self.backup_path)
 
-        json_obj = {
-            "Name":        self.name,
-            "Blockchain":  self.json_parser.parse_chain_to_dump(self.blockchain.chain),
-            "Keys":        self.json_parser.parse_keys_dict_to_dump(self.user_public_key_map)
-        }
-
-        with open(self.backup_path, "w") as f:
-            json.dump(json_obj,f)
-
-    def _read_backup(self):
-        # Check Text-File already Exists and isn't empty
-        if os.path.exists(self.backup_path) and os.path.getsize(self.backup_path) > 0:
-            with open(self.backup_path, "r") as f:
-                json_obj = json.loads(f.read())
-
-                self.name = json_obj["Name"]
-                self.blockchain.chain = self.json_parser.parse_dump_to_chain(json_obj["Blockchain"])
-                self.user_public_key_map = self.json_parser.parse_dump_to_keys_dict(json_obj["Keys"])
-            return True
-        else:
-            return False
 
     def create_user_public_key_map(self):
         # Init user-key map
