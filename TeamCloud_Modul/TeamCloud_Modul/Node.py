@@ -55,7 +55,6 @@ class Node:
         self.blockchain=Blockchain()
         self.json_parser = JSON_Parser()
 
-
         self.blockchain.create_genesis_block()
             
         self.balance = 0
