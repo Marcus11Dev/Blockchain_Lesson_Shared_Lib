@@ -145,6 +145,8 @@ class Node:
 
         
     def transaction(self,transaction):
+        if transaction.product == 'InitCoin':
+            self.add_to_user_public_key_map(user=transaction.receiver,public_key=transaction.signature)
         self.blockchain.add_new_transaction(transaction)
         self.blockchain.mine()
 
