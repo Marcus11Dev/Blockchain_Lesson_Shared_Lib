@@ -95,15 +95,11 @@ class Node:
         
         if transaction.sender != "Cloud" and transaction.sender != "bank":
             # Check buyer has enough money
-            print("Check Buy quotes")
-            print(f"Balance of {transaction.sender}",self.get_balance_of(transaction.sender))
             if self.get_balance_of(transaction.sender) < transaction.amount:
                 return False
 
         if transaction.receiver != "Cloud":
             # Check seller has enough quantity
-            print("Check Sell quotes")
-            print(f"Balance of {transaction.receiver}",self.get_quotes_of(transaction.receiver, transaction.product))
             if self.get_quotes_of(transaction.receiver, transaction.product) < transaction.quantity:
                 return False
 
@@ -140,12 +136,8 @@ class Node:
 
     def get_user_public_key(self, user,temp_user_public_key_map ={}):
         try:
-            print("user public key map",self.user_public_key_map)
-            print()
-            print("user public key map",self.user_public_key_map[user])
             return serialization.load_pem_public_key(self.user_public_key_map[user].encode('ascii'))
-        except Exception as e:
-            print(e)
+        except :
             try: 
                 return serialization.load_pem_public_key(temp_user_public_key_map[user].encode('ascii'))
             except:
@@ -182,7 +174,6 @@ class Node:
         index_start_block = 0
         index_stop_block = 0
         for index in range(len(self.blockchain.chain)):
-            #print("Index = ", index, ". Kalkulierter Hash =", self.blockchain.chain[i].compute_hash() )
             if self.blockchain.chain[index].hash == start_hash:
                 index_start_block = index+1
                 exit
@@ -224,7 +215,6 @@ class Node:
                
         # 1. the list has the most in common with other lists (=> sum of all diff_indexes is maximum)
         summed_values = [sum(i) for i in differ_index]
-        #print("Summe übereinstimmungen =", summed_values)
         
         abs_max = max(summed_values)
 
@@ -368,7 +358,7 @@ class Node:
         for block in chain:
             if block.transactions.product == 'InitCoin':
                 user = block.transactions.receiver
-                pub_key = block.transactions.signature.encode('utf-8')
+                pub_key = block.transactions.signature#.encode('utf-8')
                 temp_user_public_key_map.update({user:pub_key})
         return temp_user_public_key_map
 
@@ -429,11 +419,8 @@ class Node:
         # False if signature is not correct
 
         # get public key out of known public keys if existing
-        print()
-        print("In Signature")
         public_key = self.get_user_public_key(user=user,temp_user_public_key_map=temp_user_public_key_map)
         if public_key==None:
-            print("Could not find public key")
             return False
 
         # convert the int signature to a byte signature
@@ -442,7 +429,6 @@ class Node:
         new_signature = b""
         for value  in new_signature_array:
             new_signature = new_signature + value
-        print("test1")
         # convert payload to bytes for signature check
         payload.pop("signature")
         byte_payload = str(payload).encode('utf-8')
