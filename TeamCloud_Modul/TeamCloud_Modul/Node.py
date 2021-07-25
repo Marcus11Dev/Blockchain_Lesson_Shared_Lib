@@ -140,8 +140,12 @@ class Node:
 
     def get_user_public_key(self, user,temp_user_public_key_map ={}):
         try:
+            print("user public key map",self.user_public_key_map)
+            print()
+            print("user public key map",self.user_public_key_map[user])
             return serialization.load_pem_public_key(self.user_public_key_map[user])
-        except:
+        except Exception as e:
+            print(e)
             try: 
                 return serialization.load_pem_public_key(temp_user_public_key_map[user])
             except:
