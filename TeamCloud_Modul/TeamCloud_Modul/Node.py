@@ -421,9 +421,11 @@ class Node:
         # False if signature is not correct
 
         # get public key out of known public keys if existing
+        print()
+        print("In Signature")
         public_key = self.get_user_public_key(user=user,temp_user_public_key_map=temp_user_public_key_map)
-        
         if public_key==None:
+            print("Could not find public key")
             return False
 
         # convert the int signature to a byte signature
@@ -432,7 +434,7 @@ class Node:
         new_signature = b""
         for value  in new_signature_array:
             new_signature = new_signature + value
-
+        print("test1")
         # convert payload to bytes for signature check
         payload.pop("signature")
         byte_payload = str(payload).encode('utf-8')
@@ -448,9 +450,11 @@ class Node:
                 SHA256()
             )
         except InvalidSignature:
+            print("Signature check failed")
             return False
 
         else:
+            print("Signature Check worked")
             return True
 
 
