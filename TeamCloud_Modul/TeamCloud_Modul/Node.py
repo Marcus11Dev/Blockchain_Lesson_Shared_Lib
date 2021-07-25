@@ -95,11 +95,15 @@ class Node:
         
         if transaction.sender != "Cloud" and transaction.sender != "bank":
             # Check buyer has enough money
+            print("Check Buy quotes")
+            print(f"Balance of {transaction.sender}",self.get_balance_of(transaction.sender))
             if self.get_balance_of(transaction.sender) < transaction.amount:
                 return False
 
         if transaction.receiver != "Cloud":
             # Check seller has enough quantity
+            print("Check Sell quotes")
+            print(f"Balance of {transaction.receiver}",self.get_quotes_of(transaction.receiver, transaction.product))
             if self.get_quotes_of(transaction.receiver, transaction.product) < transaction.quantity:
                 return False
 
