@@ -463,7 +463,7 @@ class Node:
             for block in self.blockchain.chain:
                 if block.transactions.product == 'InitCoin':
                     user = block.transactions.receiver
-                    pub_key = block.transactions.signature.encode('utf-8')
+                    pub_key = block.transactions.signature
                     
                     if user in self.user_public_key_map or user=="Cloud":
                         continue
